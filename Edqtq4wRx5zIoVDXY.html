@@ -1,0 +1,345 @@
+<html><head><base href="https://multistore.com/"><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>MultiStore - Comparador de Productos</title><style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f0f0f0;
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+    }
+    header {
+        background-color: #333;
+        color: white;
+        text-align: center;
+        padding: 1rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    h1 {
+        margin: 0;
+    }
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 1rem;
+        flex: 1;
+    }
+    .search-bar {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 1rem;
+    }
+    .search-input {
+        width: 70%;
+        padding: 0.5rem;
+        font-size: 1rem;
+        border: 1px solid #ccc;
+        border-radius: 5px 0 0 5px;
+    }
+    .search-button {
+        padding: 0.5rem 1rem;
+        font-size: 1rem;
+        background-color: #3498db;
+        color: white;
+        border: none;
+        border-radius: 0 5px 5px 0;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+    .search-button:hover {
+        background-color: #2980b9;
+    }
+    .filters {
+        background-color: #fff;
+        border-radius: 5px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .store-section {
+        margin-bottom: 2rem;
+    }
+    .store-title {
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #3498db;
+    }
+    .product-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 1rem;
+    }
+    .product-card {
+        background-color: #fff;
+        border-radius: 5px;
+        padding: 1rem;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        transition: transform 0.3s ease;
+    }
+    .product-card:hover {
+        transform: translateY(-5px);
+    }
+    .product-image {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+        border-radius: 5px;
+        margin-bottom: 0.5rem;
+    }
+    .product-title {
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+    }
+    .product-price {
+        color: #e44d26;
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+    }
+    .product-rating {
+        color: #f39c12;
+        margin-bottom: 0.5rem;
+    }
+    .product-store {
+        font-size: 0.9rem;
+        color: #777;
+    }
+    .btn {
+        display: inline-block;
+        padding: 0.5rem 1rem;
+        background-color: #3498db;
+        color: white;
+        text-decoration: none;
+        border-radius: 3px;
+        transition: background-color 0.3s ease;
+    }
+    .btn:hover {
+        background-color: #2980b9;
+    }
+    footer {
+        background-color: #333;
+        color: white;
+        text-align: center;
+        padding: 1rem;
+        font-size: 0.9rem;
+    }
+    #language-selector {
+        background-color: #fff;
+        color: #333;
+        border: none;
+        padding: 0.5rem;
+        border-radius: 3px;
+        cursor: pointer;
+    }
+</style></head><body>
+    <header>
+        <h1>MultiStore</h1>
+        <select id="language-selector">
+            <option value="es">Español</option>
+            <option value="en">English</option>
+            <option value="fr">Français</option>
+        </select>
+    </header>
+    <div class="container">
+        <div class="search-bar">
+            <input type="text" id="search-input" class="search-input" placeholder="Buscar productos...">
+            <button id="search-button" class="search-button">Buscar</button>
+        </div>
+        <div class="filters">
+            <h2>Filtros</h2>
+            <label for="price-range">Rango de precio:</label>
+            <input type="range" id="price-range" min="0" max="1000" step="10">
+            <span id="price-value"></span>
+            
+            <label for="rating">Calificación mínima:</label>
+            <select id="rating">
+                <option value="1">1 estrella</option>
+                <option value="2">2 estrellas</option>
+                <option value="3">3 estrellas</option>
+                <option value="4">4 estrellas</option>
+                <option value="5">5 estrellas</option>
+            </select>
+            
+            <label for="offers-only">
+                <input type="checkbox" id="offers-only"> Solo ofertas
+            </label>
+            
+            <button id="apply-filters" class="btn">Aplicar filtros</button>
+        </div>
+        <div id="store-sections">
+            <!-- Los productos se cargarán aquí dinámicamente, separados por tiendas -->
+        </div>
+    </div>
+    <footer>
+        <p>Los productos de este sitio utilizan los enlaces de afiliados del creador en las respectivas páginas.</p>
+    </footer>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js"></script>
+    <script>
+        const storeSections = document.getElementById('store-sections');
+        const priceRange = document.getElementById('price-range');
+        const priceValue = document.getElementById('price-value');
+        const ratingSelect = document.getElementById('rating');
+        const offersOnly = document.getElementById('offers-only');
+        const applyFiltersBtn = document.getElementById('apply-filters');
+        const searchInput = document.getElementById('search-input');
+        const searchButton = document.getElementById('search-button');
+        const languageSelector = document.getElementById('language-selector');
+
+        // Tus enlaces de afiliados
+        const affiliateLinks = {
+            amazon: 'https://www.amazon.com/dp/PRODUCT_ID?tag=TU_ID_DE_AFILIADO',
+            shein: 'https://www.shein.com/PRODUCT_ID?ref=TU_ID_DE_AFILIADO',
+            temu: 'https://www.temu.com/PRODUCT_ID?affiliate_id=TU_ID_DE_AFILIADO'
+        };
+
+        // Simulación de datos de productos
+        const products = [
+            { id: 'A1', title: 'Smartphone XYZ', price: 299.99, rating: 4.5, store: 'amazon', image: 'smartphone.jpg' },
+            { id: 'S1', title: 'Vestido Floral', price: 29.99, rating: 4.2, store: 'shein', image: 'dress.jpg' },
+            { id: 'T1', title: 'Auriculares Bluetooth', price: 39.99, rating: 4.0, store: 'temu', image: 'headphones.jpg' },
+            { id: 'A2', title: 'Tablet ABC', price: 199.99, rating: 4.3, store: 'amazon', image: 'tablet.jpg' },
+            { id: 'S2', title: 'Jeans Slim Fit', price: 49.99, rating: 4.1, store: 'shein', image: 'jeans.jpg' },
+            { id: 'T2', title: 'Smartwatch Pro', price: 89.99, rating: 4.4, store: 'temu', image: 'smartwatch.jpg' },
+        ];
+
+        const translations = {
+            es: {
+                search: "Buscar productos...",
+                searchButton: "Buscar",
+                filters: "Filtros",
+                priceRange: "Rango de precio:",
+                rating: "Calificación mínima:",
+                stars: "estrellas",
+                offersOnly: "Solo ofertas",
+                applyFilters: "Aplicar filtros",
+                viewOn: "Ver en",
+                footer: "Los productos de este sitio utilizan los enlaces de afiliados del creador en las respectivas páginas."
+            },
+            en: {
+                search: "Search products...",
+                searchButton: "Search",
+                filters: "Filters",
+                priceRange: "Price range:",
+                rating: "Minimum rating:",
+                stars: "stars",
+                offersOnly: "Offers only",
+                applyFilters: "Apply filters",
+                viewOn: "View on",
+                footer: "The products on this site use the creator's affiliate links on the respective pages."
+            },
+            fr: {
+                search: "Rechercher des produits...",
+                searchButton: "Rechercher",
+                filters: "Filtres",
+                priceRange: "Fourchette de prix:",
+                rating: "Note minimale:",
+                stars: "étoiles",
+                offersOnly: "Offres seulement",
+                applyFilters: "Appliquer les filtres",
+                viewOn: "Voir sur",
+                footer: "Les produits de ce site utilisent les liens d'affiliation du créateur sur les pages respectives."
+            }
+        };
+
+        function updateLanguage(lang) {
+            const t = translations[lang];
+            document.title = `MultiStore - ${lang === 'es' ? 'Comparador de Productos' : lang === 'en' ? 'Product Comparator' : 'Comparateur de Produits'}`;
+            searchInput.placeholder = t.search;
+            searchButton.textContent = t.searchButton;
+            document.querySelector('.filters h2').textContent = t.filters;
+            document.querySelector('label[for="price-range"]').textContent = t.priceRange;
+            document.querySelector('label[for="rating"]').textContent = t.rating;
+            Array.from(ratingSelect.options).forEach((option, index) => {
+                option.textContent = `${index + 1} ${t.stars}`;
+            });
+            document.querySelector('label[for="offers-only"]').textContent = t.offersOnly;
+            applyFiltersBtn.textContent = t.applyFilters;
+            document.querySelector('footer p').textContent = t.footer;
+
+            renderProducts(products);
+        }
+
+        function renderProducts(filteredProducts) {
+            try {
+                storeSections.innerHTML = '';
+                const stores = ['amazon', 'shein', 'temu'];
+                const lang = languageSelector.value;
+                const t = translations[lang];
+                
+                stores.forEach(store => {
+                    const storeProducts = filteredProducts.filter(product => product.store === store);
+                    if (storeProducts.length > 0) {
+                        const storeSection = document.createElement('div');
+                        storeSection.className = 'store-section';
+                        storeSection.innerHTML = `
+                            <h2 class="store-title">${store.charAt(0).toUpperCase() + store.slice(1)}</h2>
+                            <div class="product-grid" id="${store}-grid"></div>
+                        `;
+                        storeSections.appendChild(storeSection);
+
+                        const storeGrid = document.getElementById(`${store}-grid`);
+                        if (storeGrid) {
+                            storeProducts.forEach(product => {
+                                const productCard = document.createElement('div');
+                                productCard.className = 'product-card';
+                                productCard.innerHTML = `
+                                    <img class="product-image" src="${product.image}" alt="${product.title}" width="250" height="200">
+                                    <div class="product-title">${product.title}</div>
+                                    <div class="product-price">$${product.price.toFixed(2)}</div>
+                                    <div class="product-rating">★ ${product.rating.toFixed(1)}</div>
+                                    <a href="${affiliateLinks[product.store]?.replace('PRODUCT_ID', product.id) || '#'}" target="_blank" class="btn">${t.viewOn} ${store}</a>
+                                `;
+                                storeGrid.appendChild(productCard);
+                            });
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error('Error in renderProducts:', error);
+            }
+        }
+
+        function applyFilters() {
+            const maxPrice = parseFloat(priceRange.value);
+            const minRating = parseFloat(ratingSelect.value);
+            const onlyOffers = offersOnly.checked;
+            const searchTerm = searchInput.value.toLowerCase();
+
+            const filteredProducts = products.filter(product => 
+                product.price <= maxPrice &&
+                product.rating >= minRating &&
+                (!onlyOffers || product.price < product.originalPrice) &&
+                (searchTerm === '' || product.title.toLowerCase().includes(searchTerm))
+            );
+
+            renderProducts(filteredProducts);
+        }
+
+        priceRange.addEventListener('input', () => {
+            priceValue.textContent = `$${priceRange.value}`;
+        });
+
+        applyFiltersBtn.addEventListener('click', applyFilters);
+        searchButton.addEventListener('click', applyFilters);
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                applyFilters();
+            }
+        });
+
+        languageSelector.addEventListener('change', (e) => {
+            updateLanguage(e.target.value);
+        });
+
+        // Inicialización
+        try {
+            priceValue.textContent = `$${priceRange.value}`;
+            updateLanguage('es');
+            renderProducts(products);
+        } catch (error) {
+            console.error('Error during initialization:', error);
+        }
+    </script>
+</body></html>
